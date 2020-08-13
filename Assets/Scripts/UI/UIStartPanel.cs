@@ -6,8 +6,8 @@ using UnityEngine.UI;
 
 public class UIStartPanel : UIBasePanel
 {
-    [SerializeField] private Text _record;
-    [SerializeField] private Text _lostScore;
+    [SerializeField] private Text _record = null;
+    [SerializeField] private Text _lostScore = null;
     public event Action EventStart;
 
     private void Awake()
