@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Imphenzia;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.SocialPlatforms.Impl;
@@ -9,29 +10,19 @@ using UnityEngine.SocialPlatforms.Impl;
 public class GameController : SingletoneGameObject<GameController>
 {
     [SerializeField] public TilesController TilesController = null;
-    [SerializeField] public MovementBall BollController = null;
+    [SerializeField] public MovementBall BallController = null;
     [SerializeField] public ScoreManager ScoreManager = null;
-   // [SerializeField] private UIInfoPanel _infoPanel = null;
+    [SerializeField] private GradientSkyCamera _gradientSkyCamera;
 
-    public event Action EventStart;
-    public event Action EventPause;
     public event Action EventGo;
-    public event Action EventStop;
 
     protected override void Awake()
     {
         base.Awake();
-
-        //_infoPanel.EventGoGame += OnGoGame;
-        BollController.EventStop += OnPauseGame;
-        BollController.EventPassed += OnPassedSession;
+        BallController.EventStop += OnPauseGame;
+        BallController.EventPassed += OnPassedSession;
     }
 
-    // private void Awake()
-    // {
-    //     _infoPanel.EventGoGame += OnGoGame;
-    //     //((UIRestartPanel) UIManager.Instance.GetPanel(UITypePanel.Start)).EventStart += OnStart;
-    // }
 
     private void Start()
     {
@@ -41,16 +32,19 @@ public class GameController : SingletoneGameObject<GameController>
 
         ((UIRestartPanel)UIManager.Instance.GetPanel(UITypePanel.Restart)).EventStart += OnReStart;
         ((UIRestartPanel)UIManager.Instance.GetPanel(UITypePanel.Restart)).EventContinue += OnContinue;
+
+        var gradient = GradientManager.Instance.getGradient();
+        _gradientSkyCamera.SetGradient(gradient.colorKeys, gradient.alphaKeys);
+
+        TilesController.ResetLevel();
     }
 
     private void OnDestroy()
     {
-        //((UIRestartPanel) UIManager.Instance.GetPanel(UITypePanel.Start)).EventStart -= OnStart;
         if (TryInstance != null)
         {
-           // _infoPanel.EventGoGame -= OnGoGame;
-            BollController.EventStop -= OnPauseGame;
-            BollController.EventPassed -= OnPassedSession;
+            BallController.EventStop -= OnPauseGame;
+            BallController.EventPassed -= OnPassedSession;
 
             ((UIStartPanel)UIManager.Instance.GetPanel(UITypePanel.Start)).EventStart -= OnStart;
 
@@ -71,41 +65,41 @@ public class GameController : SingletoneGameObject<GameController>
 
     private void OnGoGame()
     {
-        Debug.Log($"OnGoGame()");
         UIManager.Instance.ShowPanel(UITypePanel.GamePlay);
         EventGo?.Invoke();
     }
 
     private void OnReStart()
     {
-        Debug.Log($"OnReStart()");
         UIManager.Instance.ShowPanel(UITypePanel.Start);
         var platforms = TilesController.GetComponentsInChildren<MovementTile>().ToList();
         foreach (var platform in platforms)
         {
             Destroy(platform.gameObject);
         }
+        TilesController.ResetLevel();
     }
 
     private void OnPauseGame()
     {
-        Debug.Log($"OnPauseGame()");
         UIManager.Instance.ShowPanel(UITypePanel.Restart);
-        BollController.DefaultPosition();
+        BallController.DefaultPosition();
     }
 
     private void OnContinue()
     {
-        Debug.Log($"OnContinue()");
         UIManager.Instance.ShowPanel(UITypePanel.Info);
-        //EventGo?.Invoke();
     }
 
     private void OnPassedSession()
     {
         UIManager.Instance.ShowPanel(UITypePanel.Restart);
-        BollController.DefaultPosition();
+        BallController.DefaultPosition();
         TilesController.NextSession();
         ScoreManager.ResetSessionScore();
+        TilesController.NextLevel();
+        GradientManager.Instance.GenerateGradient();
+        var gradient = GradientManager.Instance.getGradient();
+        _gradientSkyCamera.SetGradient(gradient.colorKeys, gradient.alphaKeys);
     }
 }

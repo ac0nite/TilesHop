@@ -22,7 +22,6 @@ public class UIRestartPanel : UIBasePanel
 
     public void PressButtonMenu()
     {
-       // Debug.Log($"MENU");
         EventStart?.Invoke();
         //UIManager.Instance.ShowPanel(UITypePanel.Start);
     }

@@ -15,6 +15,7 @@ public class MovementBall : MonoBehaviour
     [SerializeField] private Vector3 _defaultPosition = Vector3.zero;
     [SerializeField] private float _defaultSpeed = 8f;
     [SerializeField] private Vector3 _defaultTargetFlyingBall = Vector3.zero;
+    [SerializeField] private Transform _trail = null;
     private Vector3 _downPosition = Vector3.down;
     private Vector3 _upPosition = Vector3.zero;
     private float _movementSpeed = 8f;
@@ -49,8 +50,6 @@ public class MovementBall : MonoBehaviour
 
     void Start()
     {
-       // _rigidbody = GetComponent<Rigidbody>();
-       
     }
 
     public void DefaultPosition()
@@ -61,21 +60,16 @@ public class MovementBall : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-//        Debug.Log("OnTriggerEnter");
         var l = other.transform.position.z - transform.position.z;
         var t = l / other.GetComponent<MovementTile>().Speed;
         var v = transform.position.y / t;
-        //Debug.Log($"l:{l} t:{t} v:{v} l2:{transform.position.y}");
-        
         _movementSpeed = v;
-        //_targetPosition = _downPosition;
         _targetPosition = new Vector3(transform.position.x, _downPosition.y, transform.position.z);
     }
 
     private void OnCollisionEnter(Collision other)
     {
-        Debug.Log("OnCollisionEnter");
-       //_targetPosition = _upPosition;
+        
         _targetPosition = new Vector3(transform.position.x, _upPosition.y, transform.position.z);
         EventAddScore?.Invoke();
     }
@@ -103,13 +97,11 @@ public class MovementBall : MonoBehaviour
             _down = true;
             _firstTap = Input.mousePosition.x;
             firstVec =  Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.nearClipPlane));
-            //_rigidbody.useGravity = false;
         }
 
         if (Input.GetMouseButtonUp(0))
         {
             _down = false;
-            //_rigidbody.useGravity = true;
         }
 
         if (Input.GetMouseButton(0))
@@ -117,26 +109,16 @@ public class MovementBall : MonoBehaviour
             var frw = Input.mousePosition.x - _firstTap;
             _firstTap = Input.mousePosition.x;
 
-           // _targetPosition.x += frw;
-
-           // var current = Camera.main.ScreenToWorldPoint(Input.mousePosition)
-           //point = cam.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, cam.nearClipPlane));
            var m = Input.mousePosition;
+           var p = Camera.main.ScreenToWorldPoint(new Vector3(m.x, m.y, Camera.main.nearClipPlane));
            
-            // Debug.Log($"{Camera.main.ScreenToWorldPoint(new Vector3(m.x, m.y, Camera.main.nearClipPlane))} - {transform.position}");
-            var p = Camera.main.ScreenToWorldPoint(new Vector3(m.x, m.y, Camera.main.nearClipPlane));
-             
-             //Debug.Log($"{pos}");
-             
                  float tmp = 0f;
                  if (frw > 0f)
                  {
-                     //Debug.Log($"delta: {(p-firstVec).magnitude}");
                      tmp = _targetPosition.x + ((p - firstVec).magnitude * 80);
                  }
                  else
                  {
-                     //Debug.Log($"delta: -{(p-firstVec).magnitude}");
                      tmp  = _targetPosition.x - ((p - firstVec).magnitude * 80);
                  }
                  firstVec = p;
@@ -145,7 +127,6 @@ public class MovementBall : MonoBehaviour
                  {
                      _targetPosition.x = tmp;
                  }
-                 //transform.position = Vector3.MoveTowards(transform.position, _targetPosition, _movementSpeed * Time.deltaTime);
         }
 
         transform.position = Vector3.MoveTowards(transform.position, _targetPosition, _movementSpeed * Time.deltaTime);
@@ -153,11 +134,11 @@ public class MovementBall : MonoBehaviour
 
     IEnumerator FlyingBallCoroutine()
     {
-        Debug.Log($"FlyingBallCoroutine");
+        _trail.gameObject.SetActive(true);
         _targetPosition = _defaultTargetFlyingBall;
         _movementSpeed = 40f;
         yield return new WaitForSeconds(2f);
         EventPassed?.Invoke();
-        //transform.gameObject.SetActive(false);
+        _trail.gameObject.SetActive(false);
     }
 }

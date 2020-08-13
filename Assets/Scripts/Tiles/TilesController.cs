@@ -4,38 +4,55 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.SocialPlatforms;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class TilesController : MonoBehaviour
 {
     [SerializeField] private MovementTile prefabBlock;
-    //[SerializeField] private float _distance = 5f;
 
-    [SerializeField] private float _speed = 5f;
-    [SerializeField] private int _countPlatform = 10; 
+    [SerializeField] private float _startSpeed = 5f;
+    [SerializeField] private int _startCountPlatform = 10; 
     [SerializeField] private int _percentInfo = 20;
+    [SerializeField] private Text _infoText;
+
     private int _countComlited = 0;
     private MovementTile _backPlatform = null;
     private float _nextSizeCollider = 0f;
-    
     public event Action EventFirst;
     public event Action<bool> EventMovement;
     public event Action EventFinal;
-
     private bool _go = false;
-    [SerializeField] private Text _infoText;
+
+    private int _currentPlatform = 0;
+    private float _currentSpeed = 0;
 
     private void Awake()
     {
         GameController.Instance.EventGo += OnStart;
-        GameController.Instance.BollController.EventStop += OnStop;
+        GameController.Instance.BallController.EventStop += OnStop;
+        _infoText.text = "";
+        _currentPlatform = _startCountPlatform;
+        _currentSpeed = _startSpeed;
+    }
+
+    public void NextLevel()
+    {
+        _currentPlatform = Random.Range(_currentPlatform + 1, _currentPlatform + 10);
+        _currentSpeed += 0.5f;
+    }
+
+    public void ResetLevel()
+    {
+        _currentPlatform = _startCountPlatform;
+        _currentSpeed = _startSpeed;
     }
 
     private void OnDestroy()
     {
         GameController.Instance.EventGo -= OnStart;
-        GameController.Instance.BollController.EventStop -= OnStop;
+        GameController.Instance.BallController.EventStop -= OnStop;
     }
 
     public void NextSession()
@@ -65,11 +82,6 @@ public class TilesController : MonoBehaviour
     {
         _go = false;
         EventMovement?.Invoke(false);
-        // var platforms = GetComponentsInChildren<MovementTile>().ToList();
-        // foreach (var platform in platforms)
-        // {
-        //     Destroy(platform.gameObject);
-        // }
     }
     
     void Start()
@@ -78,22 +90,19 @@ public class TilesController : MonoBehaviour
 
     public float PercentSession()
     {
-        //Debug.Log($"PercentSession() {GameController.Instance.ScoreManager.ScoreSession()}  {_countPlatform}");
-        return (float) GameController.Instance.ScoreManager.ScoreSession() / (float)_countPlatform * 100f;
+        return (float) GameController.Instance.ScoreManager.ScoreSession() / (float)_currentPlatform * 100f;
     }
 
     public bool EndSession()
     {
-        Debug.Log($"{PercentSession()} {_countComlited}");
+     //   Debug.Log($"{PercentSession()} {_countComlited}");
         return PercentSession() >= 100f;
     }
 
     void Update()
     {
-        //EndSession();
-        //Debug.Log($"{EndSession()} {_countComlited}");
         if (!_go) return;
-        if (_countComlited >= _countPlatform)
+        if (_countComlited >= _currentPlatform)
         {
             if (_backPlatform.Completion)
             {
@@ -114,25 +123,17 @@ public class TilesController : MonoBehaviour
 
     void CreatePlatform(float lenghtCollider)
     {
-
-        //if (_countComlited == _countPlatform)
-        //    EventFinal?.Invoke();
-
         _backPlatform = Instantiate(prefabBlock, transform);
         _backPlatform.transform.position = RandomStartPosition();
         _backPlatform.SetSizeCollider(lenghtCollider);
-        _backPlatform.Speed = _speed;
+        _backPlatform.Speed = _currentSpeed;
         _backPlatform.transform.SetParent(transform);
         RandomSizeNextCollider();
         _countComlited++;
-        
-       // if(_countComlited == 0) EventFirst?.Invoke();
-        
+
         var percent = PercentSession();
 
-        //Debug.Log($"percent:{percent}   {percent % _percentInfo}");
-
-        if (percent % _percentInfo == 0)
+        if (percent != 0 && percent % _percentInfo == 0)
             StartCoroutine(SetInfo($"{percent}% complited"));
 
     }
@@ -144,7 +145,7 @@ public class TilesController : MonoBehaviour
 
     Vector3 RandomStartPosition()
     {
-        return new Vector3(transform.position.x + Random.Range(-1f, 1f), transform.position.y,transform.position.z );
+        return new Vector3(transform.position.x + Random.Range(-1.2f, 1.2f), transform.position.y,transform.position.z );
     }
 
     IEnumerator SetInfo(String txt)

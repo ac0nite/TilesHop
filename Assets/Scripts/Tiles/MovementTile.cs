@@ -10,10 +10,12 @@ public class MovementTile : MonoBehaviour
     private Transform _transform = null;
     private BoxCollider _boxCollider = null;
     [SerializeField] private Transform _platform = null;
+    [SerializeField] private ParticleSystem _bang = null;
     private Vector3 _targetPosition = Vector3.zero;
     private TilesController _tilesController = null;
     private bool _movement = true;
     public bool Completion { get; private set; }
+    private ContactPoint[] _contact;
 
     public float Speed
     {
@@ -69,6 +71,14 @@ public class MovementTile : MonoBehaviour
             Destroy(this.gameObject);
         }
     }
+
+    private void OnCollisionEnter(Collision other)
+    {
+        _contact = other.contacts;
+        _bang.transform.position = _contact[0].point;
+        _bang.Play();
+    }
+
     private void OnCollisionExit(Collision other)
     {
         Completion = true;

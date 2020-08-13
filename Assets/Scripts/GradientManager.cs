@@ -25,6 +25,11 @@ public class GradientManager : SingletoneGameObject<GradientManager>
     {
     }
 
+    public Gradient getGradient()
+    {
+        return _gradient;
+    }
+
     private Color RandomColor()
     {
         return new Color(Gen(), Gen(), Gen());
@@ -32,22 +37,8 @@ public class GradientManager : SingletoneGameObject<GradientManager>
 
     public void GenerateGradient()
     {
-        Debug.Log($"first: {_firstColor}  second: {_secondColor}");
+        //Debug.Log($"first: {_firstColor}  second: {_secondColor}");
         _evalute = 0f;
-        
-        // colorKeys[0].color = Color.green;
-        // colorKeys[0].time = 1.0F;
-        // colorKeys[1].color = Color.red;
-        // colorKeys[1].time = -1.0F;
-        // colorKeys[2].color = Color.yellow;
-        // colorKeys[2].time = -1.0F;
-        //
-        // alphaKeys[0].alpha = 0.0F;
-        // alphaKeys[0].time = 1.0F;
-        // alphaKeys[1].alpha = 0.0F;
-        // alphaKeys[1].time = -1.0F;
-        // alphaKeys[1].alpha = 0.0F;
-        // alphaKeys[1].time = -1.0F;
         float steps = 6 - 1f;
         for (int i = 0; i < 6; i++)
         {
@@ -68,7 +59,7 @@ public class GradientManager : SingletoneGameObject<GradientManager>
 
     public Color GetColor()
     {
-        _evalute += 0.02f;
+        _evalute += 0.03f;
         if (_evalute >= 1)
         {
             _evalute = 0f;
